@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+    <title>WebSocket</title>
+    <style>
+        body {
+            background-image: url("login.jpg");
+            background-size: cover; /* 让背景图片覆盖整个屏幕 */
+            background-position: center; /* 居中对齐背景图片 */
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center; /* 垂直居中 */
+            justify-content: center; /* 水平居中 */
+            height: 100vh; /* 使 body 占据整个视口高度 */
+        }
+
+        #input_form {
+            width: 300px;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+
+
+        #data {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+
+    </style>
+</head>
+<body>
+<form id="input_form">
+    <input type="text" id="input">
+    <input type="submit" value="提交">
+</form>
+<div id="data"></div>
+<!--引用外部的js文件-->
+<script src="script.js"></script>
+</body>
+</html>
