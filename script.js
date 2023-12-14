@@ -25,10 +25,10 @@ socket.onmessage = event => {
     if (parsedData.type == "text")
     {para.innerText = parsedData.content; // 访问对象的 content 属性
     let tb = document.getElementById("data");
-    tb.appendChild(para); // 使用appendChild追加到末尾}
+    tb.appendChild(para); }// 使用appendChild追加到末尾
     if (parsedData.type == "numberlist")
     {console.log(parsedData.content);}
-    }
+
 
 
 

@@ -6,13 +6,14 @@ import (
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
+	"strconv"
 	"sync"
 )
 
 // We'll need to define an UpGrader
 // this will require a Read and Write buffer size
 type User struct {
-	ID   string
+	ID   int
 	Conn *websocket.Conn
 	Name string
 }
@@ -33,6 +34,28 @@ var (
 	usersLock sync.Mutex
 )
 
+func broadcaster() {
+
+	// Update the numberlist
+	numberListMessage := Message{
+		Type:    "numberlist",
+		Content: strconv.Itoa(len(users)),
+	}
+
+	// Encode the Message struct as JSON
+	jsonNumberListMessage, err := json.Marshal(numberListMessage)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	for _, u := range users {
+		// Send the numberlist update as a JSON-encoded message
+		if err := u.Conn.WriteMessage(websocket.TextMessage, jsonNumberListMessage); err != nil {
+			log.Println(err)
+			return
+		}
+	}
+}
 func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	// upgrade this connection to a WebSocket
 	// connection
@@ -41,7 +64,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	// Generate a unique user ID (you can use UUID library or any other method)
-	userID := fmt.Sprintf("user_%d", len(users)+1)
+	userID := len(users) + 1
 	// Create a new User
 	user := &User{
 		ID:   userID,
@@ -49,12 +72,11 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Add the user to the users map
-	usersLock.Lock()
-	users[userID] = user
-	usersLock.Unlock()
+
+	users[strconv.Itoa(userID)] = user
 
 	// say hello
-	log.Printf("User %s connected\n", userID)
+	log.Printf("User %d connected\n", userID)
 	nameMessage := Message{
 		Type:    "text",
 		Content: "请输入你的昵称",
@@ -72,21 +94,22 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
+	broadcaster()
 
 	// listen indefinitely for new messages coming
 	// through on our WebSocket connection
 	go func(conn *websocket.Conn, userID string) {
 		defer func() {
 			// Remove the user from the users map when the connection is closed
-			usersLock.Lock()
+
 			var user_name = users[userID].Name
 			delete(users, userID)
-			usersLock.Unlock()
 
 			leaveMessage := Message{
 				Type:    "text",
 				Content: fmt.Sprintf("User %s disconnected\n", user_name),
 			}
+			broadcaster()
 			// 将 Message 结构体编码为 JSON
 			jsonleaveMessage, err := json.Marshal(leaveMessage)
 			if err != nil {
@@ -110,9 +133,9 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Set the user's nickname
-		usersLock.Lock()
+
 		users[userID].Name = string(nickname)
-		usersLock.Unlock()
+
 		// Broadcast the user's entrance message
 		enterMessage := Message{
 			Type:    "text",
@@ -124,21 +147,14 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			return
 		}
-		usersLock.Lock()
+
 		for _, u := range users {
 			if err := u.Conn.WriteMessage(1, jsonenterMessage); err != nil {
 				log.Println(err)
 				return
 			}
 		}
-		//将numberlist更新一下
-		for _, u := range users {
-			if err := u.Conn.WriteMessage(websocket.TextMessage, []byte("number:"+userID)); err != nil {
-				log.Println(err)
-				return
-			}
-		}
-		usersLock.Unlock()
+
 		for {
 
 			// read in a message
@@ -156,7 +172,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 			// 将 Message 结构体编码为 JSON
 			jsonMessageTypestr, err := json.Marshal(MessageTypestr)
 			// Broadcast the message to all other users
-			usersLock.Lock()
+
 			for _, u := range users {
 				if err := u.Conn.WriteMessage(1, jsonMessageTypestr); err != nil {
 					log.Println(err)
@@ -164,9 +180,9 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 				}
 
 			}
-			usersLock.Unlock()
+
 		}
-	}(ws, userID)
+	}(ws, strconv.Itoa(userID))
 
 }
 
