@@ -7,7 +7,7 @@
     <title>WebSocket</title>
     <style>
         body {
-            background-image: url("login.jpg");
+            background-image: url("background.jpg");
             background-size: cover; /* 让背景图片覆盖整个屏幕 */
             background-position: center; /* 居中对齐背景图片 */
             margin: 0;
@@ -17,30 +17,49 @@
             align-items: center; /* 垂直居中 */
             justify-content: center; /* 水平居中 */
             height: 100vh; /* 使 body 占据整个视口高度 */
+            margin-bottom: 100px;
         }
 
         #input_form {
-            width: 300px;
+            width: 500px;
             padding: 20px;
             border-radius: 5px;
+            margin-left: -200px;
+            position: absolute;
+            bottom: 40px; /* 向上偏移的像素值，根据需要调整 */
+            margin-top: -10px; /* 向上偏移的像素值，根据需要调整 */
         }
 
-
-
         #data {
-            margin-top: 20px;
+            width: 500px;
+            margin-top: 70px;
+            margin-left: -200px;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
             background-color: rgba(255, 255, 255, 0.8);
+            overflow: auto; /* 或者使用 overflow: scroll; */
+            max-height: 400px; /* 设置最大高度，超过此高度将显示滚动条 */
         }
+        #number_list {
+            width: 300px;
+            margin-top: 70px;
+            margin-left: -200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.8);
+            overflow: auto; /* 或者使用 overflow: scroll; */
+            max-height: 400px; /* 设置最大高度，超过此高度将显示滚动条 */
+        }
+
 
 
     </style>
 </head>
 <body>
 <form id="input_form">
-    <input type="text" id="input">
+    <input type="text" id="input" size="40">
     <input type="submit" value="提交">
 </form>
 <div id="data"></div>
