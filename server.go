@@ -34,27 +34,28 @@ var (
 	usersLock sync.Mutex
 )
 
-func broadcaster() {
+// 动态展示在线成员列表
+func show_members(conn *websocket.Conn, userID string) {
+	var usernames []string
+	for _, user := range users {
+		usernames = append(usernames, user.Name)
 
-	// Update the numberlist
-	numberListMessage := Message{
-		Type:    "numberlist",
-		Content: strconv.Itoa(len(users)),
 	}
-
-	// Encode the Message struct as JSON
-	jsonNumberListMessage, err := json.Marshal(numberListMessage)
-	if err != nil {
-		log.Println(err)
-		return
+	// 将切片转换为 JSON 字符串
+	usernamesJSON, _ := json.Marshal(usernames)
+	names := Message{
+		Type:    "names",
+		Content: string(usernamesJSON),
 	}
+	log.Println(names)
+	// 发送消息到前端
 	for _, u := range users {
-		// Send the numberlist update as a JSON-encoded message
-		if err := u.Conn.WriteMessage(websocket.TextMessage, jsonNumberListMessage); err != nil {
+		if err := u.Conn.WriteJSON(names); err != nil {
 			log.Println(err)
 			return
 		}
 	}
+
 }
 func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	// upgrade this connection to a WebSocket
@@ -94,28 +95,26 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	broadcaster()
-
 	// listen indefinitely for new messages coming
 	// through on our WebSocket connection
 	go func(conn *websocket.Conn, userID string) {
 		defer func() {
-			// Remove the user from the users map when the connection is closed
+			// 离开时的工作
 
 			var user_name = users[userID].Name
 			delete(users, userID)
-
+			show_members(conn, userID)
 			leaveMessage := Message{
 				Type:    "text",
 				Content: fmt.Sprintf("User %s disconnected\n", user_name),
 			}
-			broadcaster()
 			// 将 Message 结构体编码为 JSON
 			jsonleaveMessage, err := json.Marshal(leaveMessage)
 			if err != nil {
 				log.Println(err)
 				return
 			}
+			// 向所有用户说一下该用户离开了
 			for _, u := range users {
 				if err := u.Conn.WriteMessage(1, jsonleaveMessage); err != nil {
 					log.Println(err)
@@ -125,18 +124,22 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 				conn.Close()
 			}
 		}()
-		// Read the user's nickname
+		// 读取用户的名称(此时的数据为JSon格式）
 		_, nickname, err := conn.ReadMessage()
 		if err != nil {
 			log.Println(err)
 			return
 		}
-
-		// Set the user's nickname
-
-		users[userID].Name = string(nickname)
-
-		// Broadcast the user's entrance message
+		var nickname_message Message
+		// 使用 json.Unmarshal 解析 JSON 数据
+		if err := json.Unmarshal(nickname, &nickname_message); err != nil {
+			log.Println(err)
+			return
+		}
+		// 设置用户的名称
+		users[userID].Name = nickname_message.Content
+		show_members(conn, userID)
+		// 将该用户的名称广播给其他
 		enterMessage := Message{
 			Type:    "text",
 			Content: fmt.Sprintf("User %s joined the chat\n", users[userID].Name),
@@ -163,20 +166,27 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 				log.Println(err)
 				return
 			}
-			// print out that message for clarity
-			log.Printf("[%s] %s\n", nickname, string(p))
-			MessageTypestr := Message{
-				Type:    "text",
-				Content: fmt.Sprintf("%s%s", nickname, ":") + string(p),
+			//判断收到信息的种类
+			var message Message
+			if err := json.Unmarshal(p, &message); err != nil {
+				log.Println(err)
+				return
 			}
-			// 将 Message 结构体编码为 JSON
-			jsonMessageTypestr, err := json.Marshal(MessageTypestr)
-			// Broadcast the message to all other users
+			if message.Type == "text" { // 将message广播出去
+				log.Printf("[%s] %s\n", nickname_message.Content, string(message.Content))
+				MessageTypestr := Message{
+					Type:    "text",
+					Content: fmt.Sprintf("%s%s", nickname_message.Content, ":") + string(message.Content),
+				}
+				// 将 Message 结构体编码为 JSON
+				jsonMessageTypestr, _ := json.Marshal(MessageTypestr)
+				// 将消息发送给其他所有用户
+				for _, u := range users {
+					if err := u.Conn.WriteMessage(1, jsonMessageTypestr); err != nil {
+						log.Println(err)
+						return
+					}
 
-			for _, u := range users {
-				if err := u.Conn.WriteMessage(1, jsonMessageTypestr); err != nil {
-					log.Println(err)
-					return
 				}
 
 			}

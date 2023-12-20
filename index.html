@@ -52,6 +52,18 @@
             overflow: auto; /* 或者使用 overflow: scroll; */
             max-height: 400px; /* 设置最大高度，超过此高度将显示滚动条 */
         }
+        #members {
+            position: fixed;
+            top: 50%;
+            right: 200px; /* 设置右边距 */
+            transform: translateY(-50%);
+            border: 2px solid white; /* 添加白色边框 */
+            padding: 10px; /* 设置内边距 */
+            background-color: #fff; /* 设置背景颜色为白色 */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* 添加阴影效果，可选 */
+        }
+
+
 
 
 
@@ -63,6 +75,7 @@
     <input type="submit" value="提交">
 </form>
 <div id="data"></div>
+<div id="members">在线成员列表(点击对应成员即可切换私聊)</div>
 <!--引用外部的js文件-->
 <script src="script.js"></script>
 </body>
