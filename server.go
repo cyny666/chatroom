@@ -97,13 +97,13 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 	// listen indefinitely for new messages coming
 	// through on our WebSocket connection
-	go func(conn *websocket.Conn, userID string) {
+	go func(conn *websocket.Conn, userID int) {
 		defer func() {
 			// 离开时的工作
 
-			var user_name = users[userID].Name
-			delete(users, userID)
-			show_members(conn, userID)
+			var user_name = users[strconv.Itoa(userID)].Name
+			delete(users, strconv.Itoa(userID))
+			show_members(conn, strconv.Itoa(userID))
 			leaveMessage := Message{
 				Type:    "text",
 				Content: fmt.Sprintf("User %s disconnected\n", user_name),
@@ -137,12 +137,12 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// 设置用户的名称
-		users[userID].Name = nickname_message.Content
-		show_members(conn, userID)
+		users[strconv.Itoa(userID)].Name = nickname_message.Content
+		show_members(conn, strconv.Itoa(userID))
 		// 将该用户的名称广播给其他
 		enterMessage := Message{
 			Type:    "text",
-			Content: fmt.Sprintf("User %s joined the chat\n", users[userID].Name),
+			Content: fmt.Sprintf("User %s joined the chat\n", users[strconv.Itoa(userID)].Name),
 		}
 		// 将 Message 结构体编码为 JSON
 		jsonenterMessage, err := json.Marshal(enterMessage)
@@ -186,13 +186,39 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 						log.Println(err)
 						return
 					}
+					log.Println(jsonMessageTypestr)
 
 				}
 
+			} else {
+				private_message := Message{
+					Type:    "text",
+					Content: fmt.Sprintf("%s%s", "(私聊)"+nickname_message.Content, ":") + string(message.Content),
+				}
+				json_private, err := json.Marshal(private_message)
+				if err != nil {
+					log.Println("JSON编组错误:", err)
+					// 根据情况处理错误，例如返回或记录并继续
+					continue
+				}
+
+				for _, u := range users {
+					if u.Name == message.Type || u.ID == userID {
+						// 使用WriteMessage发送字节数组而非WriteJSON
+						err := u.Conn.WriteMessage(websocket.TextMessage, json_private)
+						if err != nil {
+							log.Println("发送消息错误:", err)
+						}
+						log.Println(string(json_private))
+					}
+				}
 			}
 
+			log.Println("finished")
+
 		}
-	}(ws, strconv.Itoa(userID))
+
+	}(ws, userID)
 
 }
 
