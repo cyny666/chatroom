@@ -196,6 +196,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 					Content: fmt.Sprintf("%s%s", "(私聊)"+nickname_message.Content, ":") + string(message.Content),
 				}
 				json_private, err := json.Marshal(private_message)
+				log.Println(json_private)
 				if err != nil {
 					log.Println("JSON编组错误:", err)
 					// 根据情况处理错误，例如返回或记录并继续
@@ -205,7 +206,7 @@ func wsEndpoint(w http.ResponseWriter, r *http.Request) {
 				for _, u := range users {
 					if u.Name == message.Type || u.ID == userID {
 						// 使用WriteMessage发送字节数组而非WriteJSON
-						err := u.Conn.WriteMessage(websocket.TextMessage, json_private)
+						err := u.Conn.WriteMessage(1, json_private)
 						if err != nil {
 							log.Println("发送消息错误:", err)
 						}
