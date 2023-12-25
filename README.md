@@ -47,16 +47,17 @@ go run server.go
 
 先输入昵称
 
-![image-20231224211628271](./../../AppData/Roaming/Typora/typora-user-images/image-20231224211628271.png)
+![image-20231224211628271](./assets/image-20231224211628271-1703483701657-1.png)
 
 然后即可进入聊天室
 
-![image-20231224211658935](./../../AppData/Roaming/Typora/typora-user-images/image-20231224211658935.png)
+![image-20231224211658935](./assets/image-20231224211658935-1703483707123-3.png)
 
 然后即可发信息与在聊天室内的所有人交流
 
-![image-20231224211732195](./../../AppData/Roaming/Typora/typora-user-images/image-20231224211732195.png)
+![image-20231224211732195](./assets/image-20231224211732195-1703483709238-5.png)
 
 然后可以在右边点击相关成员进行私聊
 
-![image-20231224212534826](./../../AppData/Roaming/Typora/typora-user-images/image-20231224212534826.png)
+![image-20231224212534826](./assets/image-20231224212534826-1703483711298-7.png)
+
