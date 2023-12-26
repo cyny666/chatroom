@@ -4,7 +4,8 @@
 
 文件目录为下
 
-.
+```shell
+
 ├── README.md   -----项目的说明文件
 ├── background.jpg  -----用户端的背景图片
 ├── go.mod 		----go的模块定义文件
@@ -12,6 +13,9 @@
 ├── index.html	----用户端的前端界面
 ├── script.js		----用户端的JavaScript代码
 ├── server.go	 ----服务器端的代码
+```
+
+
 
 项目总体说明：
 
